@@ -1,86 +1,6 @@
-# uglifyjs混淆和压缩相关源码分析、部分重构，并封装成命令行程序
-# 需要安装的模块
-- commander，命令行相关
-- source-map， 压缩后source-map相关
+AST中body属性的内容
 
-# 数据类型
-## 经过parse解析后的AST
-```javascript
-AST_Node {
-  end: 
-  //结束
-   AST_Token {
-     raw: undefined,
-     file: 'H:\\4up\\biSheCode\\input\\input.js',
-     comments_before: [],
-     nlb: true,
-     endpos: 394,
-     endcol: 1,
-     endline: 22,
-     pos: 393,
-     col: 0,
-     line: 22,
-     value: '}',
-     type: 'punc' },
-  start: 
-  //起始
-   AST_Token {
-     raw: '"use strict"',
-     file: 'H:\\4up\\biSheCode\\input\\input.js',
-     comments_before: [],
-     nlb: false,
-     endpos: 12,
-     endcol: 12,
-     endline: 1,
-     pos: 0,
-     col: 0,
-     line: 1,
-     value: 'use strict',
-     type: 'string',
-     quote: '"' },
-  body:
-  //body里面才是具体代码 
-   [ AST_Node {
-       end: [AST_Token],
-       start: [AST_Token],
-       quote: '"',
-       value: 'use strict' },
-     AST_Node { end: [AST_Token], start: [AST_Token], definitions: [Array] },
-     AST_Node { end: [AST_Token], start: [AST_Token], definitions: [Array] },
-     AST_Node { end: [AST_Token], start: [AST_Token], definitions: [Array] },
-     AST_Node { end: [AST_Token], start: [AST_Token], body: [AST_Node] },
-     AST_Node {
-       end: [AST_Token],
-       start: [AST_Token],
-       body: [AST_Node],
-       alternative: null,
-       condition: [AST_Node] },
-     AST_Node {
-       end: [AST_Token],
-       start: [AST_Token],
-       body: [AST_Node],
-       step: [AST_Node],
-       condition: [AST_Node],
-       init: [AST_Node] },
-     AST_Node {
-       end: [AST_Token],
-       start: [AST_Token],
-       body: [Array],
-       expression: [AST_Node] } ],
-  cname: undefined,
-  enclosed: undefined,
-  parent_scope: undefined,
-  uses_eval: undefined,
-  uses_with: undefined,
-  functions: undefined,
-  variables: undefined,
-  globals: undefined }
-```
-### ast中的body
-- body中start，end一定有。end基本是;和} 的token
-- use strice语句有quote，value
-```javascript
-AST_Node {
+[ AST_Node {
     end: 
      AST_Token {
        raw: undefined,
@@ -111,12 +31,38 @@ AST_Node {
        type: 'string',
        quote: '"' },
     quote: '"',
-    value: 'use strict' }
-```
-  
-- 声明语句有
-```javascript
-AST_Node {
+    value: 'use strict' },
+  AST_Node {
+    end: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: false,
+       endpos: 39,
+       endcol: 24,
+       endline: 2,
+       pos: 38,
+       col: 23,
+       line: 2,
+       value: ';',
+       type: 'punc' },
+    start: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: true,
+       endpos: 18,
+       endcol: 3,
+       endline: 2,
+       pos: 15,
+       col: 0,
+       line: 2,
+       value: 'var',
+       type: 'keyword' },
+    definitions: [ [AST_Node], [AST_Node], [AST_Node] ] },
+  AST_Node {
     end: 
      AST_Token {
        raw: undefined,
@@ -145,11 +91,37 @@ AST_Node {
        line: 3,
        value: 'var',
        type: 'keyword' },
-    definitions: [ [AST_Node] ] }
-```
-
-- console语句
-```javascript
+    definitions: [ [AST_Node] ] },
+  AST_Node {
+    end: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: false,
+       endpos: 68,
+       endcol: 15,
+       endline: 4,
+       pos: 67,
+       col: 14,
+       line: 4,
+       value: ';',
+       type: 'punc' },
+    start: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: true,
+       endpos: 56,
+       endcol: 3,
+       endline: 4,
+       pos: 53,
+       col: 0,
+       line: 4,
+       value: 'var',
+       type: 'keyword' },
+    definitions: [ [AST_Node] ] },
   AST_Node {
     end: 
      AST_Token {
@@ -184,11 +156,7 @@ AST_Node {
        end: [AST_Token],
        start: [AST_Token],
        args: [Array],
-       expression: [AST_Node] } }
-```
-
-- if语句有
-```javascript
+       expression: [AST_Node] } },
   AST_Node {
     end: 
      AST_Token {
@@ -226,11 +194,7 @@ AST_Node {
        start: [AST_Token],
        right: [AST_Node],
        left: [AST_Node],
-       operator: '>' } }
-```
-
-- for 语句有
-```javascript
+       operator: '>' } },
   AST_Node {
     end: 
      AST_Token {
@@ -274,11 +238,7 @@ AST_Node {
        right: [AST_Node],
        left: [AST_Node],
        operator: '<' },
-    init: AST_Node { end: [AST_Token], start: [AST_Token], definitions: [Array] } }
-```
-  
-- switch语句有
-```javascript
+    init: AST_Node { end: [AST_Token], start: [AST_Token], definitions: [Array] } },
   AST_Node {
     end: 
      AST_Token {
@@ -315,11 +275,7 @@ AST_Node {
        start: [AST_Token],
        thedef: undefined,
        name: 'sum',
-       scope: undefined } }
-```
-  
-- while语句有
-```javascript
+       scope: undefined } },
   AST_Node {
     end: 
      AST_Token {
@@ -356,11 +312,7 @@ AST_Node {
        start: [AST_Token],
        right: [AST_Node],
        left: [AST_Node],
-       operator: '>' } }
-```
-
-- do-while 语句有
-```javascript
+       operator: '>' } },
   AST_Node {
     end: 
      AST_Token {
@@ -397,10 +349,7 @@ AST_Node {
        start: [AST_Token],
        right: [AST_Node],
        left: [AST_Node],
-       operator: '>' } }
-```
-- function语句有
-```javascript
+       operator: '>' } },
   AST_Node {
     end: 
      AST_Token {
@@ -448,7 +397,69 @@ AST_Node {
        name: 'reduce',
        scope: undefined,
        init: undefined },
-    inlined: undefined }
-```
-# 压缩相关
-## 压缩
+    inlined: undefined },
+  AST_Node {
+    end: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: false,
+       endpos: 636,
+       endcol: 28,
+       endline: 39,
+       pos: 635,
+       col: 27,
+       line: 39,
+       value: ';',
+       type: 'punc' },
+    start: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: true,
+       endpos: 611,
+       endcol: 3,
+       endline: 39,
+       pos: 608,
+       col: 0,
+       line: 39,
+       value: 'var',
+       type: 'keyword' },
+    definitions: [ [AST_Node] ] },
+  AST_Node {
+    end: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: false,
+       endpos: 658,
+       endcol: 20,
+       endline: 40,
+       pos: 657,
+       col: 19,
+       line: 40,
+       value: ';',
+       type: 'punc' },
+    start: 
+     AST_Token {
+       raw: undefined,
+       file: 'H:\\4up\\biSheCode\\input\\input.js',
+       comments_before: [],
+       nlb: true,
+       endpos: 645,
+       endcol: 7,
+       endline: 40,
+       pos: 638,
+       col: 0,
+       line: 40,
+       value: 'console',
+       type: 'name' },
+    body: 
+     AST_Node {
+       end: [AST_Token],
+       start: [AST_Token],
+       args: [Array],
+       expression: [AST_Node] } } ]

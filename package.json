@@ -15,6 +15,7 @@
   "author": "OooO",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "commander": "^2.12.2"
+    "commander": "^2.12.2",
+    "source-map": "^0.6.1"
   }
 }
