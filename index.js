@@ -73,8 +73,7 @@ function jsMangleMain(ip, inputFiles) {
     // console.log(findWhere);
     // console.log(insertWhere);
     toplevel.body = addRedundancyCode(toplevel.body, redundancyCode.ast.body, findWhere, insertWhere);
-    process.exit(1);
-
+    // process.exit(1);
 /***********************************************************修改变量名***************************************************/
     toplevel.figure_out_scope(mangleOptions);
     jsMangle.base54.reset();
@@ -93,7 +92,7 @@ function jsMangleMain(ip, inputFiles) {
      * @param originCode  原代码,AST结构
      * @param redundancyCode 冗余代码，AST结构
      * @param findWhere  array   读取冗余代码中的哪几个元素[1,12,33,41]
-     * @param insertWhere  array 插入到原代码ast中第几个位置[1,23,45],如果元素大于originCode的总长度，则插在数组头部
+     * @param insertWhere  array 插入到原代码ast中第几个位置[1,23,45],数组中可能有多个0
      */
     function addRedundancyCode(originCode, redundancyCode, findWhere, insertWhere){
         var res = [];
@@ -104,20 +103,21 @@ function jsMangleMain(ip, inputFiles) {
         for (var num in findWhere) {
             redundancy.push(redundancyCode[findWhere[num]]);
         }
-        //总长度
-        var allLength = originCode.length+redundancy.length;
 
-        for (var resLength=0; resLength< allLength; resLength++) {
+        //将冗余代码和原代码混合
+        var resLength = 0;
+        while (originCode.length > 0 && redundancy.length > 0) {
             if (resLength === insertWhere[0]) {
-                //如果该位置需要插入冗余元素
-                res.push(redundancy.pop());
+                //如果这个位置应该插入冗余代码
+                insertWhere.shift();
+                res.push(redundancy.shift());
             } else {
-                //
-                res.push(originCode.pop());
+                res.push(originCode.shift());
             }
+            resLength++;
         }
 
-
+        return res;
     }
 
     /**
@@ -172,7 +172,7 @@ function jsMangleMain(ip, inputFiles) {
      * 将ip地址转为insertWhere,数组中可能有多个0
      * ip地址转为数字后，最大4294967295，还是会有三位随机产生的数,所以一个ip，同一时刻，还是会有不同的冗余数据插入
      * @param ip
-     * @param findWhereLength int insertWhere的长度要大于等于findWhere
+     * @param findWhereLength int insertWhere的长度要等于findWhere
      * @returns {number} 排序有小到大
      */
     function structureInsertWhere(ip, findWhereLength, originCodeLength)
