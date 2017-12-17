@@ -7,9 +7,9 @@ var fs = require("fs");
 var jsMangle = require("./lib/node");
 
 var ip = '192.168.0.1';
-var inputFiles = ['./input/input.js'];
-//执行函数
-jsMangleMain(ip, inputFiles);
+var inputFiles = 'H:\\4up\\biSheCode\\input\\input.js';
+//执行函数,调试用，真正调用时不能执行，否则会执行两遍
+// jsMangleMain(ip, inputFiles);
 
 
 /**
@@ -17,7 +17,7 @@ jsMangleMain(ip, inputFiles);
  * @param ip
  * @param inputFiles
  */
-function jsMangleMain(ip, inputFiles) {
+function jsMangleMain(ip, inputFile) {
     //用于插入冗余代码的文件
     var redundancyFile = [
         './input/redundancyCode.js'
@@ -45,21 +45,21 @@ function jsMangleMain(ip, inputFiles) {
     outputOptions = {}; //输出参数，默认为输出js代码
 
     //返回一个绝对地址，以供fs模块使用
-    var files = inputFiles.map(function(file){
-        return require.resolve(file);
-    });
+    //修改为直接传入一个绝对地址
+    // var files = inputFiles.map(function(file){
+    //     return require.resolve(file);
+    // });
 
     //之后的操作都基于toplevel
     var toplevel = null;
 
     //解析为AST
-    files.forEach(function(file){
-        var code = fs.readFileSync(file, "utf8");
-        toplevel = jsMangle.parse(code, {
-            filename: file,
-            toplevel: toplevel
-        });
+    var code = fs.readFileSync(inputFile, "utf8");
+    toplevel = jsMangle.parse(code, {
+        filename: inputFile,
+        toplevel: toplevel
     });
+    // process.exit(1);
 
 /**********************************************************修改语法******************************************************/
     toplevel.figure_out_scope(mangleOptions);
@@ -84,7 +84,7 @@ function jsMangleMain(ip, inputFiles) {
     var stream = jsMangle.OutputStream(outputOptions);
     toplevel.print(stream);
     code = stream.get();
-    console.log(code);
+    print(code);
 
 /***********************************************************各种辅助函数*************************************************/
     /**
@@ -107,8 +107,8 @@ function jsMangleMain(ip, inputFiles) {
         //将冗余代码和原代码混合
         var resLength = 0;
         while (originCode.length > 0 && redundancy.length > 0) {
-            if (resLength === insertWhere[0]) {
-                //如果这个位置应该插入冗余代码
+            if (resLength === insertWhere[0] || insertWhere[0] === 0) {
+                //如果这个位置应该插入冗余代码，或insertWhere指定要插在首位
                 insertWhere.shift();
                 res.push(redundancy.shift());
             } else {
@@ -257,11 +257,20 @@ function jsMangleMain(ip, inputFiles) {
     function numSortAsc(a, b) {
         return a - b;
     }
+
+
+    /**
+     * 输出信息
+     * @param txt
+     */
+    function print(txt) {
+        process.stdout.write(txt);
+        process.stdout.write("\n");
+    }
 }
 
-
-
-
+//将函数暴露给其他模块使用
+module.exports = jsMangleMain;
 
 
 

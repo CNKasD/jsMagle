@@ -1,1 +1,0 @@
-"use strict";function o(o,e){return o-e}var e=4,l=123,a="aaa",n=2,r=e/n+l;console.log(r),r>10&&alert("large");for(var s=0;s<100;s++)console.log(s);switch(r){case 1:console.log("1111");break;case 2:console.log("222222222222");break;default:console.log("nonononono")}for(;r>10;)alert("yesyes");do{alert("do-while")}while(r>100);var o=o(20,10);console.log(o);

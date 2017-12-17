@@ -4,7 +4,7 @@
   "description": "uglifyjs混淆与压缩的源码阅读与分析，完成毕设js代码动态混淆的混淆器部分",
   "main": "index.js",
   "bin": {
-    "jsmangle": "bin/jsmangle.js"
+    "jsMangle": "bin/jsmangle.js"
   },
   "scripts": {
     "test": "test"
