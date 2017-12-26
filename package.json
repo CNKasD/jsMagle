@@ -1,6 +1,6 @@
 {
   "name": "jsmangle-learn",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "uglifyjs混淆与压缩的源码阅读与分析，完成毕设js代码动态混淆的混淆器部分",
   "main": "index.js",
   "bin": {

@@ -7,9 +7,9 @@ var fs = require("fs");
 var jsMangle = require("./lib/node");
 
 var ip = '192.168.0.1';
-var inputFiles = 'H:\\4up\\biSheCode\\input\\input.js';
+var inputFiles = 'H:\\4up\\biSheCode\\input\\index.js';
 //执行函数,调试用，真正调用时不能执行，否则会执行两遍
-// jsMangleMain(ip, inputFiles);
+jsMangleMain(ip, inputFiles);
 
 
 /**
@@ -44,12 +44,6 @@ function jsMangleMain(ip, inputFile) {
     mangleOptions = {toplevel:true}; //混淆参数，需要toplevel和reserved=[]，要从json文件中读取
     outputOptions = {}; //输出参数，默认为输出js代码
 
-    //返回一个绝对地址，以供fs模块使用
-    //修改为直接传入一个绝对地址
-    // var files = inputFiles.map(function(file){
-    //     return require.resolve(file);
-    // });
-
     //之后的操作都基于toplevel
     var toplevel = null;
 
@@ -59,24 +53,21 @@ function jsMangleMain(ip, inputFile) {
         filename: inputFile,
         toplevel: toplevel
     });
-    // process.exit(1);
-
+    
 /**********************************************************修改语法******************************************************/
     toplevel.figure_out_scope(mangleOptions);
     toplevel = new jsMangle.Compressor(compressOptions).compress(toplevel);
-
 /**********************************************************插入冗余代码**************************************************/
     //根据时间戳选择使用哪些冗余数据
     var findWhere = structureFindWhere(redundancyCode.ast.body.length);
     //根据ip地址选择冗余数据插在原代码中的哪个位置
-    var insertWhere = structureInsertWhere(ip, findWhere.length);
-    // console.log(findWhere);
-    // console.log(insertWhere);
+    var insertWhere = structureInsertWhere(ip, findWhere.length, toplevel.body.length);
     toplevel.body = addRedundancyCode(toplevel.body, redundancyCode.ast.body, findWhere, insertWhere);
-    // process.exit(1);
 /***********************************************************修改变量名***************************************************/
     toplevel.figure_out_scope(mangleOptions);
+    //重置新的变量名数组
     jsMangle.base54.reset();
+    //统计每个字符出现的次数，以供混淆名称候选字符重新排序，使用频率大的在前面，为了HTTPgzip压缩后代码更小
     toplevel.compute_char_frequency(mangleOptions);
     toplevel.mangle_names(mangleOptions);
 
@@ -103,7 +94,6 @@ function jsMangleMain(ip, inputFile) {
         for (var num in findWhere) {
             redundancy.push(redundancyCode[findWhere[num]]);
         }
-
         //将冗余代码和原代码混合
         var resLength = 0;
         while (originCode.length > 0 && redundancy.length > 0) {
@@ -162,7 +152,11 @@ function jsMangleMain(ip, inputFile) {
                 }
             } else {
                 //数组中不存在，直接push
-                res.push(arr[step]);
+                if (arr[step] >= originCodeLength) {
+                    res.push(0);
+                } else {
+                    res.push(arr[step]);
+                }
             }
         }
         return res;

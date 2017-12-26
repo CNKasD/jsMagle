@@ -6,6 +6,10 @@ console.log(sum);
 //if
 if (sum > 10) {
     alert('large');
+} else if(sum<-2) {
+    console.log('asdasd');
+} else {
+    alert('asdasd')
 }
 //for循环
 for (var i=0; i< 100; i++ ) {
@@ -36,5 +40,5 @@ function reduce(first, second) {
     return (first - second);
 }
 
-var reduce = reduce(20, 10);
+reduce(20, 10);
 console.log(reduce);
