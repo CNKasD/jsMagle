@@ -96,12 +96,19 @@ function jsMangleMain(ip, inputFile) {
         }
         //将冗余代码和原代码混合
         var resLength = 0;
-        while (originCode.length > 0 && redundancy.length > 0) {
-            if (resLength === insertWhere[0] || insertWhere[0] === 0) {
-                //如果这个位置应该插入冗余代码，或insertWhere指定要插在首位
-                insertWhere.shift();
-                res.push(redundancy.shift());
-            } else {
+        //两份代码任意一个有未插入的，则进入循环内
+        while (originCode.length > 0 || redundancy.length > 0) {
+            if (redundancy.length > 0) {
+                //冗余数据没有插入结束
+                if (resLength === insertWhere[0] || insertWhere[0] === 0) {
+                    //如果这个位置应该插入冗余代码，或insertWhere指定要插在首位
+                    insertWhere.shift();
+                    res.push(redundancy.shift());
+                } else {
+                    res.push(originCode.shift());
+                }
+            } else if (originCode.length > 0 ) {
+                //原始代码没有插入结束
                 res.push(originCode.shift());
             }
             resLength++;

@@ -12,6 +12,12 @@
   "keywords": [
     "learnUglifyjs"
   ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/CNKasD/jsMagle.git"
+    }
+  ],
   "author": "cnkasd",
   "license": "BSD-2-Clause",
   "dependencies": {
